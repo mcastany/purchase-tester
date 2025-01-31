@@ -130,7 +130,7 @@ export const postReceipt = async (apiKey: string, userId: string, paddleTransact
       body: JSON.stringify({
         app_user_id: userId,
         fetch_token: paddleTransactionId,
-        // presented_offering_identifier: offeringId
+        presented_offering_identifier: offeringId
       })
     });
 
