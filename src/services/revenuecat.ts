@@ -1,8 +1,17 @@
 import { getProductsByIds, initializePaddle } from "./paddle";
+import { Config } from "../types";
 
-const BASE_URL = 'https://api.revenuecat.com/v1';
+const getBaseUrl = (config: Config) => {
+  if (config.proxyUrl) {
+    return config.proxyUrl.endsWith('/') ? config.proxyUrl.slice(0, -1) : `${config.proxyUrl}/v1`;
+  }
+  return 'https://api.revenuecat.com/v1';
+};
 
 export const getOfferings = async (apiKey: string, userId: string) => {
+  const config = JSON.parse(localStorage.getItem('config') || '{}') as Config;
+  const baseUrl = getBaseUrl(config);
+  
   try {
     const headers = {
       'Content-Type': 'application/json',
@@ -10,7 +19,7 @@ export const getOfferings = async (apiKey: string, userId: string) => {
       'X-Platform': 'web'
     };
 
-    const response = await fetch(`${BASE_URL}/subscribers/${userId}/offerings`, {
+    const response = await fetch(`${baseUrl}/subscribers/${userId}/offerings`, {
       method: 'GET',
       headers
     });
@@ -64,6 +73,9 @@ export const getOfferings = async (apiKey: string, userId: string) => {
 };
 
 export const getSubscriber = async (apiKey: string, userId: string) => {
+  const config = JSON.parse(localStorage.getItem('config') || '{}') as Config;
+  const baseUrl = getBaseUrl(config);
+
   try {
     const headers = {
       'Content-Type': 'application/json',
@@ -71,7 +83,7 @@ export const getSubscriber = async (apiKey: string, userId: string) => {
       'X-Platform': 'web'
     };
 
-    const response = await fetch(`${BASE_URL}/subscribers/${userId}`, {
+    const response = await fetch(`${baseUrl}/subscribers/${userId}`, {
       method: 'GET',
       headers
     });
@@ -80,9 +92,7 @@ export const getSubscriber = async (apiKey: string, userId: string) => {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const data = await response.json();
-    console.log(data);
-    return data;
+    return await response.json();
   } catch (error) {
     console.error('Error fetching subscriber:', error);
     throw error;
@@ -90,6 +100,9 @@ export const getSubscriber = async (apiKey: string, userId: string) => {
 };
 
 export const setSubscriberAttribute = async (apiKey: string, userId: string, key: string, value: string) => {
+  const config = JSON.parse(localStorage.getItem('config') || '{}') as Config;
+  const baseUrl = getBaseUrl(config);
+
   try {
     const headers = {
       'Content-Type': 'application/json',
@@ -97,7 +110,7 @@ export const setSubscriberAttribute = async (apiKey: string, userId: string, key
       'X-Platform': 'web'
     };
 
-    const response = await fetch(`${BASE_URL}/subscribers/${userId}/attributes/${key}`, {
+    const response = await fetch(`${baseUrl}/subscribers/${userId}/attributes/${key}`, {
       method: 'POST',
       headers,
       body: JSON.stringify({ value })
@@ -115,6 +128,9 @@ export const setSubscriberAttribute = async (apiKey: string, userId: string, key
 };
 
 export const postReceipt = async (apiKey: string, userId: string, paddleTransactionId: string, offeringId: string) => {
+  const config = JSON.parse(localStorage.getItem('config') || '{}') as Config;
+  const baseUrl = getBaseUrl(config);
+
   try {
     const headers = {
       'Content-Type': 'application/json',
@@ -124,7 +140,7 @@ export const postReceipt = async (apiKey: string, userId: string, paddleTransact
       'X-Is-Sandbox': 'True'
     };
 
-    const response = await fetch(`${BASE_URL}/receipts`, {
+    const response = await fetch(`${baseUrl}/receipts`, {
       method: 'POST',
       headers,
       body: JSON.stringify({

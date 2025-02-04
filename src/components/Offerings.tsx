@@ -49,22 +49,23 @@ const Offering: React.FC = () => {
       paddle.Update({
         eventCallback: async (data: any) => {
           if (data.name === "checkout.completed") {
-            await postReceipt(
-              config.revenueCatApiKey, 
-              userConfig.userId!, 
-              data.data.transaction_id,
-              id!
-            );
+            if (!config.noCodeIntegration) {
+              await postReceipt(
+                config.revenueCatApiKey, 
+                userConfig.userId!, 
+                data.data.transaction_id,
+                id!
+              );
+            }
             paddle.Checkout.close();
             navigate('/main');
           }
         }
-      })
+      });
 
       await paddle.Checkout.open(checkoutData);
     } catch (error) {
       console.error('Error opening Paddle checkout:', error);
-      // You might want to show an error message to the user here
     }
   };
 

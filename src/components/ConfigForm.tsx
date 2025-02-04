@@ -6,10 +6,13 @@ const ConfigForm: React.FC = () => {
   const navigate = useNavigate();
   const [config, setConfig] = useState<Config>({
     revenueCatApiKey: '',
-    paddleApiKey: ''
+    paddleApiKey: '',
+    noCodeIntegration: false,
+    proxyUrl: ''
   });
   const [error, setError] = useState<string | null>(null);
   const [isValidating, setIsValidating] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   useEffect(() => {
     const savedConfig = localStorage.getItem('config');
@@ -17,6 +20,9 @@ const ConfigForm: React.FC = () => {
       try {
         const parsedConfig = JSON.parse(savedConfig) as Config;
         setConfig(parsedConfig);
+        if (parsedConfig.proxyUrl || parsedConfig.noCodeIntegration) {
+          setShowAdvanced(true);
+        }
       } catch (err) {
         console.error('Error parsing saved config:', err);
       }
@@ -65,6 +71,47 @@ const ConfigForm: React.FC = () => {
             <p className="mt-2 text-sm text-red-600">{error}</p>
           )}
         </div>
+
+        <div className="pt-2">
+          <button
+            type="button"
+            onClick={() => setShowAdvanced(!showAdvanced)}
+            className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center"
+          >
+            {showAdvanced ? '- Hide' : '+ Show'} Advanced Settings
+          </button>
+        </div>
+
+        {showAdvanced && (
+          <div className="space-y-4 pt-4 border-t">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Proxy URL
+              </label>
+              <input
+                type="url"
+                value={config.proxyUrl}
+                onChange={(e) => setConfig({ ...config, proxyUrl: e.target.value })}
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Enter proxy URL (optional)"
+              />
+            </div>
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="noCodeIntegration"
+                checked={config.noCodeIntegration}
+                onChange={(e) => setConfig({ ...config, noCodeIntegration: e.target.checked })}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+              <label htmlFor="noCodeIntegration" className="ml-2 block text-sm text-gray-900">
+                No Code Integration
+              </label>
+            </div>
+
+          </div>
+        )}
+
         <button
           type="submit"
           disabled={isValidating}
