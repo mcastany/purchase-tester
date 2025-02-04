@@ -4,6 +4,7 @@ import ConfigForm from './components/ConfigForm';
 import UserIdForm from './components/UserIdForm';
 import Main from './components/Main';
 import Offering from './components/Offerings';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   return (
@@ -15,9 +16,21 @@ function App() {
           </h1>
           <Routes>
             <Route path="/" element={<ConfigForm />} />
-            <Route path="/user" element={<UserIdForm />} />
-            <Route path="/main" element={<Main />} />
-            <Route path="/offerings/:id" element={<Offering />} />
+            <Route path="/user" element={
+              <ProtectedRoute>
+                <UserIdForm />
+              </ProtectedRoute>
+            } />
+            <Route path="/main" element={
+              <ProtectedRoute>
+                <Main />
+              </ProtectedRoute>
+            } />
+            <Route path="/offerings/:id" element={
+              <ProtectedRoute>
+                <Offering />
+              </ProtectedRoute>
+            } />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
