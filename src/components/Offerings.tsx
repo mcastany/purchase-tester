@@ -50,6 +50,9 @@ const Offering: React.FC = () => {
         eventCallback: async (data: any) => {
           if (data.name === "checkout.completed") {
             if (!config.noCodeIntegration) {
+              if (config.postDelay && config.postDelay > 0) {
+                await new Promise(resolve => setTimeout(resolve, config.postDelay));
+              }
               await postReceipt(
                 config.revenueCatApiKey, 
                 userConfig.userId!, 

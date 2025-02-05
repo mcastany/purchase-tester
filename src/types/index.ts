@@ -3,6 +3,7 @@ export interface Config {
   paddleApiKey: string;
   noCodeIntegration?: boolean;
   proxyUrl?: string;
+  postDelay?: number;
 }
 
 export interface UserConfig {

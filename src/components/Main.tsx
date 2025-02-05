@@ -11,6 +11,7 @@ const Main: React.FC = () => {
   const [offeringsError, setOfferingsError] = useState<string | null>(null);
   const [subscriberError, setSubscriberError] = useState<string | null>(null);
   const [showAttributeModal, setShowAttributeModal] = useState(false);
+  const [showRawJson, setShowRawJson] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -58,6 +59,33 @@ const Main: React.FC = () => {
     navigate(`/offerings/${id}`);
   };
 
+  const renderSubscriberInfo = () => {
+    if (!subscriber) return null;
+
+    if (showRawJson) {
+      return (
+        <textarea
+          className="w-full h-96 p-4 font-mono text-sm bg-gray-50 border rounded-lg"
+          value={JSON.stringify(subscriber, null, 2)}
+          readOnly
+        />
+      );
+    }
+
+    return (
+      <>
+        <div className="space-y-2">
+          <div className="flex items-center space-x-2">
+            <span className="font-semibold whitespace-nowrap">User ID:</span>
+            <span className="truncate">{subscriber.subscriber.original_app_user_id}</span>
+          </div>
+          <p><span className="font-semibold">First Seen:</span> {new Date(subscriber.subscriber.first_seen).toLocaleDateString()}</p>
+          <p><span className="font-semibold">Management URL:</span> <a href={subscriber.subscriber.management_url} className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">Open</a></p>
+        </div>
+      </>
+    );
+  };
+
   return (
     <div className="space-y-8">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -65,20 +93,19 @@ const Main: React.FC = () => {
         <div className="space-y-8">
           {/* Subscriber Info Section */}
           <div className="bg-white rounded-xl shadow-lg p-6">
-            <h2 className="text-2xl font-bold mb-4">Customer Information</h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold">Customer Information</h2>
+              <button
+                onClick={() => setShowRawJson(!showRawJson)}
+                className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium rounded-lg"
+              >
+                {showRawJson ? 'Show Formatted' : 'Show Raw JSON'}
+              </button>
+            </div>
             {subscriberError ? (
               <div className="text-red-500">{subscriberError}</div>
-            ) : !subscriber ? (
-              <div>Loading subscriber data...</div>
             ) : (
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <span className="font-semibold whitespace-nowrap">User ID:</span>
-                  <span className="truncate">{subscriber.subscriber.original_app_user_id}</span>
-                </div>
-                <p><span className="font-semibold">First Seen:</span> {new Date(subscriber.subscriber.first_seen).toLocaleDateString()}</p>
-                <p><span className="font-semibold">Management URL:</span> <a href={subscriber.subscriber.management_url} className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">Open</a></p>
-              </div>
+              renderSubscriberInfo()
             )}
           </div>
 
