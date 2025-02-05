@@ -28,8 +28,14 @@ const Main: React.FC = () => {
       try {
         const offeringsData = await getOfferings(config.revenueCatApiKey, userConfig.userId!);
         setOfferings(offeringsData);
-      } catch (err) {
-        setOfferingsError('Failed to fetch offerings');
+      } catch (err: any) {
+        if (err?.error?.detail === 'You aren\'t permitted to perform this request.'){
+          setOfferingsError('Make sure you configured the paddle client side key');
+        } else if (err?.error?.code === 'bad_request'){
+          setOfferingsError('Check that product ids configured in RevenueCat match prices in Paddle');
+        } else {
+          setOfferingsError('Failed to fetch offerings');
+        }
       }
 
       // Fetch subscriber data
@@ -66,7 +72,7 @@ const Main: React.FC = () => {
       return (
         <textarea
           className="w-full h-96 p-4 font-mono text-sm bg-gray-50 border rounded-lg"
-          value={JSON.stringify(subscriber, null, 2)}
+          value={JSON.stringify(subscriber.subscriber, null, 2)}
           readOnly
         />
       );
@@ -80,6 +86,7 @@ const Main: React.FC = () => {
             <span className="truncate">{subscriber.subscriber.original_app_user_id}</span>
           </div>
           <p><span className="font-semibold">First Seen:</span> {new Date(subscriber.subscriber.first_seen).toLocaleDateString()}</p>
+          <p><span className="font-semibold">Last Seen:</span> {new Date(subscriber.subscriber.last_seen).toLocaleDateString()}</p>
           <p><span className="font-semibold">Management URL:</span> <a href={subscriber.subscriber.management_url} className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">Open</a></p>
         </div>
       </>
@@ -132,9 +139,9 @@ const Main: React.FC = () => {
                         </p>
                       </div>
                       <span className={`px-2 py-1 rounded text-sm ${
-                        entitlement.active || !entitlement.expires_date ?  'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        !entitlement.expires_date || entitlement.expires_date > new Date().toISOString()?  'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                       }`}>
-                        {entitlement.active || !entitlement.expires_date  ? 'Active' : 'Inactive'}
+                        {!entitlement.expires_date || entitlement.expires_date > new Date().toISOString() ? 'Active' : 'Inactive'}
                       </span>
                     </div>
                   </div>

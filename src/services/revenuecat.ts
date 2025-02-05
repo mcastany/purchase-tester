@@ -48,6 +48,12 @@ export const getOfferings = async (apiKey: string, userId: string) => {
       acc[offering.identifier] = {
         availablePackages: offering.packages.map((p: any) => {
           const product = paddleProducts.find((pp: any) => pp.price.id === p.platform_product_identifier)
+
+          if (!product) {
+            console.log('Product not found on Paddle', p.platform_product_identifier);
+            return null;
+          }
+
           product.type = product?.price.billingCycle ? 'SUBSCRIPTION' : 'ONE TIME PURCHASE';
           return {
             identifier: p.identifier,
@@ -160,3 +166,9 @@ export const postReceipt = async (apiKey: string, userId: string, paddleTransact
     throw error;
   }
 }; 
+
+
+
+
+
+

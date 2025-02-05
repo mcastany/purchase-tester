@@ -2,16 +2,42 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getOfferings, postReceipt } from '../services/revenuecat';
 import { UserConfig, Config } from '../types';
-import { getPaddleInstance } from '../services/paddle';
+import { getPaddleInstance, initializePaddle } from '../services/paddle';
+import { getSubscriber } from '../services/revenuecat';
 
 const Offering: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [offering, setOffering] = useState<any>(null);
+  const [subscriber, setSubscriber] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isPaddleInitialized, setIsPaddleInitialized] = useState(false);
 
   useEffect(() => {
-    const fetchOffering = async () => {
+    const initializePaddleFirst = async () => {
+      const config = JSON.parse(localStorage.getItem('config') || '{}') as Config;
+      if (config.paddleApiKey) {
+        try {
+          await initializePaddle(config.paddleApiKey);
+          setIsPaddleInitialized(true);
+        } catch (err) {
+          setError('Failed to initialize payment processor');
+          return;
+        }
+      } else {
+        setIsPaddleInitialized(true);
+      }
+    };
+
+    initializePaddleFirst();
+  }, []);
+
+  useEffect(() => {
+    if (!isPaddleInitialized) return;
+
+    console.log('isPaddleInitialized', isPaddleInitialized);
+
+    const fetchData = async () => {
       const userConfig = JSON.parse(localStorage.getItem('userConfig') || '{}') as UserConfig;
       const config = JSON.parse(localStorage.getItem('config') || '{}') as Config;
       
@@ -25,13 +51,25 @@ const Offering: React.FC = () => {
         }
         
         setOffering(selectedOffering);
-      } catch (err) {
-        setError('Failed to fetch offering details');
+        const subscriberData = await getSubscriber(config.revenueCatApiKey, userConfig.userId!);
+        setSubscriber(subscriberData);
+      } catch (err: any) {
+        setError(err?.error?.detail || 'Failed to fetch offering details');
       }
     };
 
-    fetchOffering();
-  }, [id]);
+    fetchData();
+  }, [id, isPaddleInitialized]);
+
+  const isProductPurchased = (productId: string) => {
+    return [
+      ...Object.keys(subscriber?.subscriber?.subscriptions || {}),
+      ...Object.keys(subscriber?.subscriber?.non_subscriptions || {}),
+      ...Object.keys(subscriber?.subscriber?.other_purchases || {})
+    ].some(
+      (pid: string) => pid === productId
+    );
+  };
 
   const handlePurchase = async (pkg: any) => {
     try {
@@ -107,7 +145,14 @@ const Offering: React.FC = () => {
           <div key={pkg.identifier} className="border rounded-lg p-6 space-y-4">
             <div className="flex justify-between items-start">
               <div>
-                <h3 className="text-xl font-bold">{pkg.product.product.name}</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xl font-bold">{pkg.product.product.name}</h3>
+                  {isProductPurchased(pkg.product.price.id) && (
+                    <span className="px-2 py-1 text-sm bg-green-100 text-green-800 rounded">
+                      Purchased
+                    </span>
+                  )}
+                </div>
                 <p className="text-gray-600">{pkg.product.product.description}</p>
                 <p className="text-gray-600">{pkg.product.type}</p>
               </div>
@@ -125,9 +170,10 @@ const Offering: React.FC = () => {
 
             <button
               onClick={() => handlePurchase(pkg)}
-              className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-150 ease-in-out shadow-sm"
+              disabled={isProductPurchased(pkg.product.price.id)}
+              className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-150 ease-in-out shadow-sm disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
-              Purchase
+              {isProductPurchased(pkg.product.price.id) ? 'Already Purchased' : 'Purchase'}
             </button>
           </div>
         ))}

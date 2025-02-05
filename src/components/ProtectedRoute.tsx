@@ -7,8 +7,9 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const config = JSON.parse(localStorage.getItem('config') || '{}') as Config;
+  const isPaddleKey = (key: string) => key.startsWith('pdl_') || key.startsWith('pdl_');
   
-  if (!config.revenueCatApiKey || !config.paddleApiKey) {
+  if (!config.revenueCatApiKey || (isPaddleKey(config.revenueCatApiKey) && !config.paddleApiKey)) {
     return <Navigate to="/" replace />;
   }
 

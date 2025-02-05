@@ -16,6 +16,7 @@ export const initializePaddle = async (apiKey: string) => {
 };
 
 export const getPaddleInstance = () => {
+  
   if (!paddleInstance) {
     throw new Error('Paddle not initialized');
   }
@@ -35,7 +36,6 @@ export const getProductsByIds = async (productIds: string[]) => {
   };
   
   const paddle = getPaddleInstance();
-  const products = await paddle.PricePreview(request);
 
-  return products;
+  return await paddle.PricePreview(request);
 };

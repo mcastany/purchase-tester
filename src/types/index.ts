@@ -1,6 +1,6 @@
 export interface Config {
   revenueCatApiKey: string;
-  paddleApiKey: string;
+  paddleApiKey?: string;
   noCodeIntegration?: boolean;
   proxyUrl?: string;
   postDelay?: number;

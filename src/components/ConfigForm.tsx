@@ -15,6 +15,8 @@ const ConfigForm: React.FC = () => {
   const [isValidating, setIsValidating] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
+  const isPaddleKey = (key: string) => key.startsWith('pdl_') || key.startsWith('pdl_');
+
   useEffect(() => {
     const savedConfig = localStorage.getItem('config');
     if (savedConfig) {
@@ -34,6 +36,12 @@ const ConfigForm: React.FC = () => {
     e.preventDefault();
     setError(null);
     setIsValidating(true);
+
+    if (isPaddleKey(config.revenueCatApiKey) && !config.paddleApiKey) {
+      setError('Paddle API key is required for Paddle integration');
+      setIsValidating(false);
+      return;
+    }
 
     localStorage.setItem('config', JSON.stringify(config));
     navigate('/user');
@@ -56,22 +64,26 @@ const ConfigForm: React.FC = () => {
             required
           />
         </div>
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Paddle API Key
-          </label>
-          <input
-            type="text"
-            value={config.paddleApiKey}
-            onChange={(e) => setConfig({ ...config, paddleApiKey: e.target.value })}
-            className="w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="Enter Paddle API key"
-            required
-          />
-          {error && (
-            <p className="mt-2 text-sm text-red-600">{error}</p>
-          )}
-        </div>
+
+        {isPaddleKey(config.revenueCatApiKey) && (
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Paddle API Key
+            </label>
+            <input
+              type="text"
+              value={config.paddleApiKey}
+              onChange={(e) => setConfig({ ...config, paddleApiKey: e.target.value })}
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Enter Paddle API key"
+              required={isPaddleKey(config.revenueCatApiKey)}
+            />
+          </div>
+        )}
+
+        {error && (
+          <p className="mt-2 text-sm text-red-600">{error}</p>
+        )}
 
         <div className="pt-2">
           <button
