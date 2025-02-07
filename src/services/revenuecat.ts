@@ -137,30 +137,55 @@ export const postReceipt = async (apiKey: string, userId: string, paddleTransact
   const config = JSON.parse(localStorage.getItem('config') || '{}') as Config;
   const baseUrl = getBaseUrl(config);
 
-  try {
-    const headers = {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`,
-      'X-Platform': 'web',
-      'X-Application': 'Purchase tester',
-      'X-Is-Sandbox': 'True'
-    };
+  const RETRYABLE_STATUS_CODES = [425, 429, 502, 503, 504];
+  const MAX_RETRIES = 3;
+  const BASE_DELAY = 1000; // 1 second
 
-    const response = await fetch(`${baseUrl}/receipts`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({
-        app_user_id: userId,
-        fetch_token: paddleTransactionId,
-        presented_offering_identifier: offeringId
-      })
-    });
+  const makeRequest = async (retryCount: number): Promise<any> => {
+    try {
+      const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+        'X-Platform': 'web',
+        'X-Application': 'Purchase tester'
+      };
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const response = await fetch(`${baseUrl}/receipts`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          app_user_id: userId,
+          fetch_token: paddleTransactionId,
+          presented_offering_identifier: offeringId
+        })
+      });
+
+      if (!response.ok) {
+        if (retryCount < MAX_RETRIES && RETRYABLE_STATUS_CODES.includes(response.status)) {
+          // Calculate exponential backoff delay with jitter
+          const delay = Math.min(BASE_DELAY * Math.pow(2, retryCount) + Math.random() * 1000, 10000);
+          console.log(`Retrying request (attempt ${retryCount + 1}/${MAX_RETRIES}) after ${delay}ms`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          return makeRequest(retryCount + 1);
+        }
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      if (retryCount < MAX_RETRIES && error instanceof Error && error.message.includes('fetch')) {
+        // Also retry on network errors
+        const delay = Math.min(BASE_DELAY * Math.pow(2, retryCount) + Math.random() * 1000, 10000);
+        console.log(`Retrying request (attempt ${retryCount + 1}/${MAX_RETRIES}) after ${delay}ms`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return makeRequest(retryCount + 1);
+      }
+      throw error;
     }
+  };
 
-    return await response.json();
+  try {
+    return await makeRequest(0);
   } catch (error) {
     console.error('Error posting receipt:', error);
     throw error;
