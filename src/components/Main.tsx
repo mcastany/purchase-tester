@@ -12,6 +12,7 @@ const Main: React.FC = () => {
   const [subscriberError, setSubscriberError] = useState<string | null>(null);
   const [showAttributeModal, setShowAttributeModal] = useState(false);
   const [showRawJson, setShowRawJson] = useState(false);
+  const [showCopySuccess, setShowCopySuccess] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -78,12 +79,33 @@ const Main: React.FC = () => {
       );
     }
 
+    const handleCopyUserId = () => {
+      navigator.clipboard.writeText(subscriber.subscriber.original_app_user_id);
+      setShowCopySuccess(true);
+      setTimeout(() => setShowCopySuccess(false), 2000);
+    };
+
     return (
       <>
         <div className="space-y-2">
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 relative">
             <span className="font-semibold whitespace-nowrap">User ID:</span>
             <span className="truncate">{subscriber.subscriber.original_app_user_id}</span>
+            <button
+              onClick={handleCopyUserId}
+              className="ml-2 p-1 text-blue-600 hover:text-blue-700 focus:outline-none"
+              title="Copy User ID"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+                <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+              </svg>
+            </button>
+            {showCopySuccess && (
+              <div className="absolute right-0 -top-8 bg-green-100 text-green-800 px-2 py-1 rounded text-sm animate-fade-out">
+                Copied!
+              </div>
+            )}
           </div>
           <p><span className="font-semibold">First Seen:</span> {new Date(subscriber.subscriber.first_seen).toLocaleDateString()}</p>
           <p><span className="font-semibold">Last Seen:</span> {new Date(subscriber.subscriber.last_seen).toLocaleDateString()}</p>
