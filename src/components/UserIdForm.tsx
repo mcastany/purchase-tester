@@ -52,7 +52,7 @@ const UserIdForm: React.FC = () => {
             }}
             className="w-full py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium rounded-lg transition duration-150 ease-in-out shadow-sm"
           >
-            Continue Anonymously
+            Continue with Anonymous ID
           </button>
         </div>
       </form>
