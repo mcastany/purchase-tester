@@ -74,15 +74,22 @@ const Offering: React.FC = () => {
   const handlePurchase = async (pkg: any) => {
     try {
       const paddle = getPaddleInstance();
+      const config = JSON.parse(localStorage.getItem('config') || '{}') as Config;
+      const userConfig = JSON.parse(localStorage.getItem('userConfig') || '{}') as UserConfig;
+      
+
       const checkoutData = {
         items: [{
           priceId: pkg.product.price.id,
           quantity: 1
-        }]
+        }],
+        address: config.country ? {
+          countryCode: config.country
+        } : undefined,
+        customData: {
+          app_user_id: userConfig.userId
+        },
       };
-
-      const userConfig = JSON.parse(localStorage.getItem('userConfig') || '{}') as UserConfig;
-      const config = JSON.parse(localStorage.getItem('config') || '{}') as Config;
       
       paddle.Update({
         eventCallback: async (data: any) => {
@@ -165,6 +172,17 @@ const Offering: React.FC = () => {
                 <ul className="list-disc list-inside space-y-1 text-gray-600">
                   <li>Interval: {pkg.product.price.billingCycle.frequency} {pkg.product.price.billingCycle.interval}</li>
                 </ul>
+                {pkg.product.price.trialPeriod && (
+                  <span className="px-2 py-1 text-sm bg-blue-100 text-blue-800 rounded">
+                    {pkg.product.price.trialPeriod.frequency} {pkg.product.price.trialPeriod.interval} Free Trial
+                  </span>
+                )}
+                {/* Add discount details if there's any */}
+                {pkg.discounts && pkg.discounts.length > 0 && (
+                  <span className="px-2 py-1 text-sm bg-yellow-100 text-yellow-800 rounded">
+                    {pkg.discounts[0].type} {pkg.discounts[0].amount}
+                  </span>
+                )}
                 </div>
             )}
 

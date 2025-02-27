@@ -1,4 +1,5 @@
 import { getPaddleInstance as getPaddle, initializePaddle as initPaddle, Paddle } from '@paddle/paddle-js';
+import { Config } from '../types';
 
 let paddleInstance: Paddle | undefined;
 
@@ -25,14 +26,16 @@ export const getPaddleInstance = () => {
 
 
 export const getProductsByIds = async (productIds: string[]) => {
+  const config = JSON.parse(localStorage.getItem('config') || '{}') as Config;
+
   const request = {
     items: productIds.map((priceId) => ({
       quantity: 1,
       priceId
     })),
-    address: {
-      countryCode: 'US'
-    }
+    address: config.country ? {
+      countryCode: config.country
+    } : undefined
   };
   
   const paddle = getPaddleInstance();

@@ -96,7 +96,32 @@ const ConfigForm: React.FC = () => {
         </div>
 
         {showAdvanced && (
-          <div className="space-y-4 pt-4 border-t">
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Country (optional)
+              </label>
+              <select
+                value={config.country || 'US'}
+                onChange={(e) => setConfig({ ...config, country: e.target.value })}
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">Default</option>
+                <option value="US">United States</option>
+                <option value="GB">United Kingdom</option>
+                <option value="DE">Germany</option>
+                <option value="FR">France</option>
+                <option value="ES">Spain</option>
+                <option value="IT">Italy</option>
+                <option value="NL">Netherlands</option>
+                <option value="BE">Belgium</option>
+                <option value="IE">Ireland</option>
+                <option value="DK">Denmark</option>
+                <option value="SE">Sweden</option>
+                <option value="NO">Norway</option>
+                <option value="FI">Finland</option>
+              </select>
+            </div>
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Proxy URL

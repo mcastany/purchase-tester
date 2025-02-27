@@ -54,7 +54,9 @@ export const getOfferings = async (apiKey: string, userId: string) => {
             return null;
           }
 
+          // Product is Line item
           product.type = product?.price.billingCycle ? 'SUBSCRIPTION' : 'ONE TIME PURCHASE';
+          
           return {
             identifier: p.identifier,
             packageType: '',

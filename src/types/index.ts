@@ -4,6 +4,7 @@ export interface Config {
   noCodeIntegration?: boolean;
   proxyUrl?: string;
   postDelay?: number;
+  country?: string;
 }
 
 export interface UserConfig {
